@@ -1,11 +1,9 @@
 # importing all necessary modules
-from lib2to3.btm_utils import tokens
-
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# Reads 'Twitter_Data_Apr.csv' file
+# Reads 'pre_covid.csv' file
 df = pd.read_csv(r"pre_covid.csv", encoding="latin-1")
 
 comment_words = ''
@@ -44,17 +42,6 @@ for val in df.tweet_text:
         tokens[i] = tokens[i].lower()
 
     comment_words += " ".join(tokens) + " "
-
-wordcloud = WordCloud(width=800, height=800,
-                      background_color='white',
-                      stopwords=stopwords,
-                      min_font_size=10).generate(comment_words)
-
-# plot the WordCloud image
-plt.figure(figsize=(8, 8), facecolor=None)
-plt.imshow(wordcloud)
-plt.axis("off")
-plt.tight_layout(pad=0)
 
 
 df2 = df[~df.tweet_text.str.contains("http")]
