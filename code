@@ -1,22 +1,41 @@
 # importing all necessary modules
+from lib2to3.btm_utils import tokens
+
 from wordcloud import WordCloud, STOPWORDS
 import matplotlib.pyplot as plt
 import pandas as pd
 
-
 # Reads 'Twitter_Data_Apr.csv' file
-df = pd.read_csv(r"American Express-25000-tweets Postcovid.csv", encoding="latin-1")
+df = pd.read_csv(r"pre_covid.csv", encoding="latin-1")
 
 comment_words = ''
 stopwords = set(STOPWORDS)
-print(stopwords)
 
+elimination_phrases = ['http', 'fiverr']
+remove_phrases = ["amex", "american express", "americanexpress", "mastercard", "thank you", "visa", "credit", "card"]
+new_stopwords = ["to", "hi", "ha", 'tt', 'ts', 'is', 'tnk', 'tnks', 'for', 'day', 'you', 'we', 've', 'now', 'wa',
+                 'time', 'good',
+                 'great', 'will', 'need', 'tral', 'awesome', 'deal', 'awsome', 'asome', 'on', 'hold', 'central',
+                 'please', 'ia',
+                 'really', 'ok', 'use', 'back', 'call', 'wt', 'help', 'people', 'ask', 'late fee', 'cancel', 'take',
+                 'guy', 'called',
+                 'bad', 'poor', 'money', 'back', 'amp', 'sorry', 'hear', 'email', 'got', "fuck", "trying to", "trying",
+                 "to", "fucking"]
+stopwords |= set(new_stopwords)
+comment_words = ''
+elim = 0
 # iterate through the csv file
-for val in df.tweet_text :
-
+for val in df.tweet_text:
     # typecast each val to string
-    val = str(val)
-
+    elim = False
+    val = str(val).lower()
+    for elim_phrase in elimination_phrases:
+        if elim_phrase in val:
+            elim = True
+    if elim:
+        continue
+    for word in remove_phrases:
+        val = val.replace(word, "")
     # split the value
     tokens = val.split()
 
@@ -31,11 +50,39 @@ wordcloud = WordCloud(width=800, height=800,
                       stopwords=stopwords,
                       min_font_size=10).generate(comment_words)
 
-
 # plot the WordCloud image
 plt.figure(figsize=(8, 8), facecolor=None)
 plt.imshow(wordcloud)
 plt.axis("off")
 plt.tight_layout(pad=0)
 
-plt.show()
+
+df2 = df[~df.tweet_text.str.contains("http")]
+df3 = df2[df2.tweet_text.str.contains("small business" or "well fargo" or "high volume" or "full refund" or "support small"
+                                      or "global pandemic" or "late payment" or "give refund" or "experience high" or "chance win"
+                                      or "hour today" or "refund ticket") & ~df2.tweet_text.str.contains("http")]
+
+print(len(df3[df3.sentiment != 0]))  # non-neutral tweets related to topic
+print(len(df2[df2.sentiment != 0]))  # non-neutral tweets overall
+
+print(len(df3[df3.sentiment != 0])*100/len(df2[df2.sentiment != 0]))
+
+print(len(df3[df3.sentiment == 1]) * 100 / (
+    len(df3[df3.sentiment != 0])))  # percentage of positives in non neutral tweets
+
+
+list = ["small business", "well fargo", "high volume", "full refund", "support small",  "global pandemic",
+        "late payment", "give refund", "experience high", "chance win", "hour today", "refund ticket"]
+
+for word in list:
+    count = 0
+    n = 1
+    if df.tweet_text.str.contains(list[0]):
+        count += 1
+    elif ~df.tweet_text.str.contains(list[0:n]) and df.tweet_text.str.contains(list[n]):
+        count += 1
+    elif df.tweet_text.str.contains(list[0:n]) or ~df.tweet_text.str.contains(list[n]):
+        count += 0
+    n += 1
+    print(count)
+
